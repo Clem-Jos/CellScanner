@@ -6,7 +6,7 @@ Package installing:
 -	Install Python 3.7 if not already installed in the computer
 -	Check for pip3 or pip in the cmd, install it if not available
 -   On the cmd, enter the folowing commands:
-	pip install pyqt5
+	pip install pyqt5==5.14
 	pip install sklearn
 	pip install fcsparser
 	pip install matplotlib.pyplot
