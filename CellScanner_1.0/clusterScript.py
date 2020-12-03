@@ -90,7 +90,7 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
         showgat = save
     else:
         showgat = None
-    f.fileOption(cwd, refFiles, species, predFiles, sppred, nbC, nbC2, gating, 'prediction', '', var, 0, True, 0,channels=channels,dicChannels=dicChannels)
+    f.fileOption(cwd, refFiles, species, predFiles, sppred, nbC, nbC2, gating, predAn, '', var, 0, True, 0,channels=channels,dicChannels=dicChannels,type=('Clustering: '))
     # ## import and treat data
     refArrays = f.importFile(refFiles, gating=gating, save=showgat, fc=fc, cwd=cwd, channels=channels,dicChannels=dicChannels)
     if refArrays == []:
@@ -102,29 +102,22 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
     targetPred = []
     if predAn == 'prediction':
         for anArray in predArrays:
-            print(1)
             data2, atarget2, species2 = f.treat([anArray], sppred, None, mode='clustering', cluster=True)
             Data.append(data2)
             targetPred.append(atarget2)
-            print(2)
     else:
-        print(1.1)
         data2, target2, species2 = f.treat(predArrays, sppred, nbC2, mode='clustering', cluster=True)
         Data.append(data2)
         targetPred.append(target2)
-        print(1.2)
     dataRef, targetRef, species = f.treat(refArrays, species, nbC, mode='analysis', cluster=True)
-    print(3)
 
     # ##################CALCULATION############################################
     nmax = len(species)
     n = nmax
     species.sort()
     # point moyen ref :
-    print(4)
     r = f.pd.concat([dataRef, targetRef], axis=1, join='inner')
     mpRef = r.groupby('SPECIES').mean()
-    print(5)
     if method == 1:
         for k in range(len(Data)):
             S = []
@@ -140,7 +133,6 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
             clusterSP, dicSP, distance = annotation(Data[k], P[posMax], clust_nb, nmax, mpRef, param, species)
 
             label = P[posMax]
-            print(5.1)
             if clust_nb == 2:
                 clusters = AgglomerativeClustering(n_clusters=1).fit(Data[k])
                 predictL = clusters.labels_
@@ -155,7 +147,6 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
             predLabel = []
             i = 0
             for i in range(len(label)):
-                print(5.2)
                 if clusterSP[label[i]] != 0:
                     predLabel.append(clusterSP[label[i]])
                 else:
@@ -163,8 +154,8 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
             allsp = species + [i for i, x in enumerate(clusterSP) if x == 0]
             if predAn == 'analysis':
                 conf = f.r.confusion_matrix(targetPred[k], predLabel, allsp)
-                pA = f.pd.DataFrame({'exp': targetPred[k], 'pred': predLabel})
-                pA.to_csv(cwd + 'results.csv', sep=';', mode='a')
+                #pA = f.pd.DataFrame({'exp': targetPred[k], 'pred': predLabel})
+                #pA.to_csv(cwd + 'results.csv', sep=';', mode='a')
                 f.cmFile(conf, allsp, cwd, 'Prediction CM')
                 f.plotConfusionMatrix(conf, allsp, save, cwd, normalize=True,
                                       name='CM with' + str(len(species)) + ' species', predAn='analysis')
@@ -179,28 +170,23 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
                 f.graph3d(Data[k], predLabel, targetPred[k], allsp + ['unknown'], param, statistics, save, cwd, 0,
                             name='with' + ' '.join(species), predtype=predAn, clust=True)
             elif predAn == 'prediction' and save is not None:
-                print(5.4)
                 f.graph3dRef(Data[k], predLabel, label, allsp + list(range(0, clust_nb)), param, statistics, save,
                                cwd,
                                refdata=dataRef, reflabel=targetRef, repeat=0,
-                               name='with' + ' '.join(species), predtype=predAn,
+                               name='with' + ' '.join(species), predtype='clustering',
                                clust=True)  # TODO changer les graph par les cluster numbers
 
     elif method == 2:
-        print(6)
         # point moyen ref :
         for k in range(len(Data)):
-            print(6.1)
             clusterSP = []
             dicSP = {}
-            label = []
             clust_nb = 0
             distance = []
             predLabel = []
             n = nmax
             label =[]
             while n > 0:
-                print(6.2)
                 # ##PREDICTION##
                 clusters = AgglomerativeClustering(n_clusters=n).fit(Data[k])
                 predictL = clusters.labels_
@@ -219,41 +205,34 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
                 else:
                     n = 0
             clusterSP = assignCluster(distance, species)
-            print(6.3)
             i = 0
             for i in range(len(label)):
                 if clusterSP[label[i]] != 0:
                     predLabel.append(clusterSP[label[i]])
                 else:
                     predLabel.append(label[i])
-            print(6.4)
             # #### ASSESSMENT PART, GRAPH AND ACCURACY ####
             allsp = species + list(range(0, clust_nb))
             if predAn == 'analysis':
-                print(6.7)
                 conf = f.r.confusion_matrix(targetPred[k], predLabel, allsp)
-                print(6.71)
                 pA = f.pd.DataFrame({'exp': targetPred[k], 'pred': predLabel})
-                print(6.72)
                 pA.to_csv(cwd + 'results.csv', sep=';', mode='a')
-                print(6.73)
                 # newSp = list(set(species)) TODO why same question
-                print(6.74)
                 f.plotConfusionMatrix(conf, allsp, save, cwd, normalize=True, name='CM with' + str(len(species)) + ' species', predAn='analysis')
-                print(6.75)
                 f.cmFile(conf, allsp, cwd, 'Prediction CM')
-            print(6.8)
-            statistics = f.statAnalysis(predLabel, targetPred[k], allsp)
-            f.exportStatistics(statistics, [''], cwd, 'predict')
-            f.assessmentValue([statistics], allsp, cwd, [''], 'predict')
+                statistics = f.statAnalysis(predLabel, targetPred[k], allsp)
+                f.exportStatistics(statistics, [''], cwd, 'predict')
+                f.assessmentValue([statistics], allsp, cwd, [''], 'predict')
+            else:
+                statistics = f.statAnalysis(predLabel, targetPred[k], allsp)
+                f.exportPrediction(list(predLabel), [predFiles[k].split('/')[-1][:-4]], cwd, 'predict',
+                                   k + 1, '', )
             if predAn == 'analysis' and save is not None:
-                print(6.9)
-                f.graph3d(Data[k], predLabel, targetPred[k], allsp + ['unknown'], param, statistics, save, cwd, 0,
+                f.graph3d(Data[k], predLabel, list(targetPred[k]), allsp + ['unknown'], param, statistics, save, cwd, 0,
                             name='with' + ' '.join(species), predtype=predAn, clust=True)
             elif predAn == 'prediction' and save is not None:
-                print(6.10)
                 f.graph3dRef(Data[k], predLabel, label, allsp, param, statistics, save, cwd, refdata=dataRef,
-                               reflabel=targetRef, repeat=0, name=fileNames[k], predtype=predAn,
+                               reflabel=targetRef, repeat=0, name=fileNames[k], predtype='clustering',
                                clust=True)
                 # TODO changer les graph par les cluster numbers
 

@@ -94,18 +94,21 @@ def gatingFunction(narray, save=None, filename='', cwd='', fc='Accuri'):  # grap
             #  labels.append(0)
             else:
                 labels.append(1)
-    if save is not None or save != 'None':
+    if save is not None and save != 'None':
         x = 'FL1-A'
         y = 'FL3-A'
         colours = {0: 'r', 1: 'g'}
         cvec = [colours[label] for label in labels]
-        plt.figure(figsize=(9, 9))
-        plt.scatter(A[x], A[y], c=cvec)
-        plt.title('Line gating ' + filename)
+        fig = plt.figure(figsize=(9, 9))
+        ax = fig.add_subplot(111)
+        ax.scatter(A[x], A[y], c=cvec)
+        ax.set_title('Line gating ' + filename)
+        ax.set_xlabel(x)
+        ax.set_ylabel(y)
         if save == 'show':
             plt.show()
         elif save == 'save':
-            plt.savefig(cwd + 'gating_' + filename.split('/')[-1][:-4] + '.png')
+            fig.savefig(cwd + 'gating_' + filename.split('/')[-1][:-4] + '.png')
             plt.close()
         else:
             plt.close()
@@ -304,7 +307,11 @@ def exportPrediction(predictedLbl, samples, cwd, typeF, run, typeP='AVERAGE', re
         file = file + 'predictions.csv'
 
     f = open(file, 'a')
-    species = set(predictedLbl)
+    sps = set(predictedLbl)
+    print('hahahaha')
+    species = sorted(sps)
+    print('bbbbb')
+    print(species)
     f.write(l.join(samples) + '\n')
     if typeP == 'AVERAGE':
         f.write('AVERAGE PREDICTION FOR EACH RECORD WITH %i REPEAT\n' % repeat)
@@ -468,6 +475,7 @@ def graph3d(data, predict, target, species, param=['FL1-A', 'FL3-A', 'FSC-A'], s
         xp = []
         yp = []
         zp = []
+
         for i in range(len(target)):
             if clust:
                 if target[i] == sp:
@@ -492,7 +500,6 @@ def graph3d(data, predict, target, species, param=['FL1-A', 'FL3-A', 'FSC-A'], s
                     xp.append(np.log10(data.iloc[i, posParam[0]]))
                     yp.append(np.log10(data.iloc[i, posParam[1]]))
                     zp.append(np.log10(data.iloc[i, posParam[2]]))
-
         ax1.scatter(xk, yk, zk, label=sp, s=0.5)
         ax2.scatter(xp, yp, zp, label=sp, s=0.5)
     ax1.set_title('Expected Result')
@@ -512,7 +519,6 @@ def graph3d(data, predict, target, species, param=['FL1-A', 'FL3-A', 'FSC-A'], s
     if show == 'show':
         plt.show()
     elif show == 'save':
-
         if predtype == 'analysis' or predtype == 'prediction':
             plt.savefig(cwd + 'graph_tool_analysis_' + name + '.png')
         elif predtype == 'prediction':
@@ -706,14 +712,14 @@ def assessmentValue(statValues, species, cwd, sample, typeF):
 
 def fileOption(cwd, files, species, files2, species2, nbC, nbC2, gating='line', predAn='prediction',
                predtype='neur', ratio=1 / 7.0, repeat=1, average=True,
-               doubt=0, channels=[], dicChannels={},fc='Accuri'):
+               doubt=0, channels=[], dicChannels={},fc='Accuri',type=''):
     f = open(cwd + 'option.txt', 'a')
     now = datetime.now()
     date = now.strftime("%d/%m/%Y %H:%M")
     if predAn == 'prediction':
-        f.write('Prediction ' + date + '\n')
+        f.write(type+'Prediction ' + date + '\n')
     else:
-        f.write('Tool analysis ' + date + '\n')
+        f.write(type+'Tool analysis ' + date + '\n')
     f.write('Class records:\n')
     for sp in set(species):
         f.write('\t- ' + sp + '\n')
@@ -753,6 +759,8 @@ def fileOption(cwd, files, species, files2, species2, nbC, nbC2, gating='line', 
 
     f.write('Calculate an average prediction with the repeated results: ' + str(average) +
             '\nMinimum normalized prediction on repeats: ' + str(doubt))
+
+    f.write('\n\nCellScanner version: 1.00\nWriten by Clemence JOSEPH\n27/11/2020')
     f.close()
 
 
@@ -860,45 +868,33 @@ def distance(pav, rav, column=['FSC-A', 'FL1-A', 'FL3-A']):
 
 
 def cmFile(cm, species, cwd, what):
-    print(cm)
-    print(species)
-    print("#########################LAPINNNNNN############################f")
-    print(cwd)
-    print(what)
+
     f = open(cwd + 'cmData.csv', 'a')
-    print(1)
     species=[str(i) for i in species]
 
     f.write(what + ':;\n')
-    print(2)
     l = len(species)
     table = []
     table.append(['', ''] + ['P'] * l)
     table.append(['', ''] + species)
-    print(3)
     for i in range(l):
         ssTable = ['E'] + [str(species[i])]
         for j in range(l):
             ssTable = ssTable + [str(cm[i][j])]
         table.append(ssTable)
-    print(4)
-    print(table)
     for line in table:
         f.write(';'.join(line) + '\n')
     f.write('\n Normalized:\n')
     cm2 = cm.copy()
     f.close()
     f=open(cwd + 'cmData.csv', 'a')
-    print(5)
     for i in range(l):
         tot = sum(cm[i])
-        print(tot)
         for j in range(l):
-            if tot> 0:
+            if tot > 0:
                 cm2[i][j] = (cm[i][j] * 100) / tot
-            else :
+            else:
                 cm2[i][j] = 0
-        print(cm2)
     table2 = []
     table2.append(['', ''] + ['P'] * l)
     table2.append(['', ''] + species)
@@ -1035,24 +1031,18 @@ def importFile(files, gating='line', save='None', fc='Accuri', cwd='', channels=
             meta, data = fcsparser.parse(files[i], reformat_meta=True)
         else:
             data = []
-        print(2)
         data = data.rename(columns=dicChannels)
         for a in channels:
             if a not in data.columns:
-                print(a)
                 popup('Wrong flow cytometer',
                       'The flow cytometer is not compatible with the selected data.\n\nPlease check that the selected files are from the selected flow cytometer.')
                 return []
-        print(4)
         data = data[channels]  # hide this line if all columns have to be used in the program
         arrays.append(data)
-        print(5)
     for i in range(len(arrays)):
-        print(6)
         if gating is not None:
             if gating == 'line':
                 arrays[i] = gatingFunction(arrays[i], save=save, filename=files[i],cwd=cwd, fc=fc)
-    print(7)
     return arrays
 
 
@@ -1076,15 +1066,11 @@ def treat(someArrays, species, nbC, mode='pred', cluster=False, random_state=Non
 
         arrays.append(anArray.copy())
     if mode == 'train' or mode == 'analysis':
-        print('b')
         arrays, species = mergeSameSpecies(arrays, species)
     for i in range(len(arrays)):
-        print('c')
         if nbC is not None:
-            print('d')
             arrays[i] = randomSelection(arrays[i], nbC, random_state=random_state)
         if cluster:
-            print('e')
             arrays[i] = arrays[i].dropna()
 
             #arrays[i] = arrays[i].drop(columns=['FL4-A', 'FL4-H'])
@@ -1101,8 +1087,6 @@ def treat(someArrays, species, nbC, mode='pred', cluster=False, random_state=Non
         else:
             fusion = arrays[0]
     data, target = splitInformation(fusion)
-    print('len everything included')
-    print(len(data))
     return data, target, species
 
 

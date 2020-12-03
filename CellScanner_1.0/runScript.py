@@ -67,7 +67,7 @@ def predictionMultiple(files, refArrays, species, files2, Data, target2, nbC, re
             predict_lbl2.append(pred_lbl2)
             statistics2.append(f.statAnalysis(pred_lbl2, target2[i], species))
             if not average and save is not None and repeat == 0:
-                f.graph3d(Data[i], pred_lbl2, target2[i], species + ['unknown'], param, statistics2[i], save, cwd,
+                f.graph3d(Data[i], pred_lbl2, list(target2[i]), species + ['unknown'], param, statistics2[i], save, cwd,
                           repeat,
                           name=files2[i].split('/')[-1][:-4] + ' repeat 1', predtype=predAn)
     else:
@@ -76,7 +76,7 @@ def predictionMultiple(files, refArrays, species, files2, Data, target2, nbC, re
         conf2 = confusion_matrix(target2[0], predict_lbl2, species)
         predict_lbl2 = [predict_lbl2]
         if not average and save is not None and repeat == 0:
-            f.graph3d(Data[0], predict_lbl2[0], target2[0], species, param, statistics2[0], save, cwd, repeat,
+            f.graph3d(Data[0], predict_lbl2[0], list(target2[0]), species, param, statistics2[0], save, cwd, repeat,
                       name='Tool analysis prediction repeat 0', predtype=predAn)
     return statistics, statistics2, predict_lbl2, target2, conf, conf2, species, Data
 
@@ -186,7 +186,6 @@ def predictions(files, species, files2, species2, nbC=1000, nbC2=None, gating='l
     if save is not None:
         f.plotConfusionMatrix(confM, species, save, cwd, normalize=True, name=' average CM for reference',
                             predAn='training')
-
     target = np.array(target)
     predict_lbls = np.array(predict_lbls)
     conf2 = []
@@ -201,15 +200,13 @@ def predictions(files, species, files2, species2, nbC=1000, nbC2=None, gating='l
             if len(predict_lbl) > 0:
                 conf2.append(confusion_matrix(target[i], predict_lbl, species + ['unknown']))
                 statistics2 = f.statAnalysis(list(predict_lbl), list(target[i]), species)
-
                 acc2.append(statistics2.loc['MEAN', 'ACC'])
                 f12.append(statistics2.loc['MEAN', 'F1'])
 
                 if predAn == 'prediction':
-                    if save is not None:
-                        f.graph3d(data2[i], predict_lbl, target[i], species + ['unknown'], param, statistics2, save,
+                    if save is not None and save != 'None':
+                        f.graph3d(data2[i], predict_lbl, list(target[i]), species + ['unknown'], param, statistics2, save,
                                   cwd, i + 1, name=files2[i].split('/')[-1][:-4], predtype=predAn)
-
                     f.exportPrediction(list(predict_lbl), [files2[i].split('/')[-1][:-4]], cwd, 'predict',
                                        i + 1, 'AVERAGE', repeat)
                 else:
@@ -218,8 +215,7 @@ def predictions(files, species, files2, species2, nbC=1000, nbC2=None, gating='l
                     f.assessmentValue([statistics2], species, cwd, [files2[i].split('/')[-1][:-4]], 'predict')
                     f.exportPrediction(list(predict_lbl), [files2[i].split('/')[-1][:-4]], cwd, 'predict',
                                        i + 1, 'AVERAGE', repeat)
-                    print(cwd)
-                    print('create the file')
+
                     f.cmFile(conf2[i], species, cwd, 'Prediction CM')
                     if save is not None:
                         f.graph3d(data2[i], predict_lbl, target[i], species + ['unknown'], param, statistics2, save,
@@ -232,11 +228,11 @@ def predictions(files, species, files2, species2, nbC=1000, nbC2=None, gating='l
         else:
             for j in range(repeat):
                 if predAn == 'prediction':
-                    f.exportPrediction(predict_lbls[j][i], [files2[i].split('/')[-1][:-4]], cwd,
+                    f.exportPrediction(list(predict_lbls[j][i]), [files2[i].split('/')[-1][:-4]], cwd,
                                        'predict', i, 'SINGLE')
                 else:
                     f.exportStatistics(PredStat[j], [files2[i].split('/')[-1][:-4]], cwd, 'predict')
-                    f.exportPrediction(predict_lbls[j][i], [files2[i].split('/')[-1][:-4]], cwd,
+                    f.exportPrediction(list(predict_lbls[j][i]), [files2[i].split('/')[-1][:-4]], cwd,
                                        'predict', i, 'SINGLE')
             if predAn == 'analysis':
                 f.assessmentValue(PredStat, species, cwd, [files2[i].split('/')[-1][:-4]], 'predict')

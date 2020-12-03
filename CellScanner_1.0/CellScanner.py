@@ -1,12 +1,16 @@
 import sys
+from os import path, getcwd
 from PyQt5.QtWidgets import QMainWindow, QLabel, QPushButton, QVBoxLayout, QWidget, QAction, QComboBox, QSpinBox, \
     QGridLayout, \
     QFileDialog, qApp, QMessageBox, QAbstractSpinBox, QCheckBox, QHBoxLayout, QScrollArea, QLineEdit, QCompleter, \
     QListView, QApplication, QDoubleSpinBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt,QUrl
+#from PyQt5.QtCore.Qt.WebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import QPalette, QStandardItemModel, QIcon, QFont,QColor,QPixmap
 import db_script as db
 from functools import partial
+import webbrowser
+
 
 import runCalculation as r
 
@@ -43,6 +47,7 @@ class MainWindow(QMainWindow):
         self.buttonU.clicked.connect(self.clickU)
         self.buttonC.clicked.connect(self.clickC)
         self.buttonCa.clicked.connect(self.clickCa)
+        self.versionLabel= QLabel('Version 1.0.0\nCJOSEPH')
         layout = QGridLayout()
         layout.addWidget(self.label,0,0,1,2)
         layout.addWidget(self.label2, 1, 0, 1, 2)
@@ -52,6 +57,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.buttonC,5,0,1,1)
         layout.addWidget(self.buttonCa,5,1,1,1)
         layout.addWidget(self.buttonU,6,0,1,2)
+        layout.addWidget(self.versionLabel,7,0,1,1)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -61,10 +67,14 @@ class MainWindow(QMainWindow):
     def toolbarFunction(self):
         exitAct = QAction(QIcon('exit.png'), 'Exit', self)
         exitAct.setShortcut('Ctrl+Q')
-        exitAct.triggered.connect(self.close)
+        exitAct.triggered.connect(self.closeA)
         exitAct2 = QAction(QIcon('param.png'), 'Parameter', self)
         exitAct2.setShortcut('Ctrl+p')
         exitAct2.triggered.connect(self.clickS)
+        helpAct = QAction(QIcon('help.png'), 'Help', self)
+        helpAct.setShortcut('Ctrl+h')
+        helpAct.triggered.connect(self.clickH)
+
         fcAct = QAction(QIcon('fc.png'), 'Flow cytometer', self)
         fcAct.triggered.connect(self.clickFc)
         self.toolbar = self.addToolBar('Exit')
@@ -73,8 +83,17 @@ class MainWindow(QMainWindow):
         self.toolbar2.addAction(exitAct2)
         self.toolbar3 = self.addToolBar('Flow cytometer')
         self.toolbar3.addAction(fcAct)
+        self.toolbar4 = self.addToolBar('Help')
+        self.toolbar4.addAction(helpAct)
+
         self.setGeometry(300, 300, 300, 200)
         self.show()
+
+    def closeEvent(self,event):
+        sys.exit(app.exec_())
+
+    def closeA(self):
+        sys.exit(app.exec_())
 
     def clickP(self):
         self.cams = WindowPredictAssess('prediction')
@@ -103,6 +122,17 @@ class MainWindow(QMainWindow):
     def clickFc(self):
         self.cams = ConfigFlowcytometer()
         self.cams.show()
+
+    def clickH(self):
+        if path.exists('Help.pdf'):
+            webbrowser.open(r'file://'+getcwd()+'/Help.pdf')
+        else:
+            try:
+                webbrowser.open("http://psbweb05.psb.ugent.be/conet/karoline/documents/CellScanner_help.pdf")
+            except:
+                msg = QMessageBox.warning(self, 'Error', 'Impossible to find the help file, please check your internet connection.')
+
+
 
 ########################### PREDICTION WINDOWS
 
@@ -1035,7 +1065,7 @@ class DeleteFc(QWidget):
                                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if message == QMessageBox.Yes:
             db.delFc(fcName)
-        msg= QMessageBox.information(self,'Flow cytometer deleted','The flow cytometer '+fcName+' is removed from the database.')
+            msg= QMessageBox.information(self,'Flow cytometer deleted','The flow cytometer '+fcName+' is removed from the database.')
         self.window = ConfigFlowcytometer()
         self.window.show()
         self.close()
