@@ -1,25 +1,38 @@
 CellScanner install
 
 From zip file or github repository.
+For Windows and Linux:
 
 Package installing:
 -	Install Python 3.7 if not already installed in the computer
 -	Check for pip3 or pip in the cmd, install it if not available
--   On the cmd, enter the folowing commands:
+On the cmd, enter the folowing commands:
 	pip install pyqt5==5.14
 	pip install sklearn
 	pip install fcsparser
 	pip install matplotlib.pyplot
-Download or Clone the directory containing, the scripts, database file, Result directory References directory and the Help.pdf file.
+Download or Clone the directory containing, the scripts, database file, Result directory References directory.
+To launch CellScanner  from terminal:
+- cd ~path/to/CellScanner
+- python3 CellScanner.py
+or 
+- python CellScanner.py
 
-Tun the programm by lauching the CellScanner.py file.
 
 For Mac:
+
 Package installing:
 -	Install Python 3.7 if not already installed in the computer
 -	Check for pip3 or pip in the cmd, install it if not available
--   On the cmd, enter the folowing commands:
-	pip3 install matplotlib
-	pip3 instal PyQt5==5.15
-	pip install sklearn
-	pip install fcsparser
+On the termina, enter the folowing commands:
+	pip3 install matplotlib==3.1.1
+	pip3 install PyQt5==5.15
+	pip3 install scikit-learn==0.23.2
+	pip3 install fcsparser==0.2.0
+Download or Clone the directory containing, the scripts, database file, Result directory References directory.
+To launch CellScanner  from terminal:
+- cd ~path/to/CellScanner
+- python3 CellScanner.py
+or 
+- python CellScanner.py
+
