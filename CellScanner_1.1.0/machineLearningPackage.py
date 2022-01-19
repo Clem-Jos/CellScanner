@@ -923,7 +923,7 @@ def fileOption(cwd, files, species, files2, species2, nbC, nbC2, gating='line', 
     f.write('Calculate an average prediction with the repeated results: ' + str(average) +
             '\nMinimum normalized prediction on repeats: ' + str(doubt))
 
-    f.write('\n\nCellScanner version: 1.00\nWriten by Clemence JOSEPH\n27/11/2020')
+    f.write('\n\nCellScanner version: 1.1.0\nWriten by Clemence JOSEPH\n27/11/2020')
     f.close()
 
 
