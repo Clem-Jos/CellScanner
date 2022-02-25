@@ -1255,6 +1255,7 @@ def treat(someArrays, species, nbC, mode='pred', cluster=False, random_state=Non
             fusion = pd.concat(arrays, ignore_index=True, sort=False)
         else:
             fusion = arrays[0]
+    fusion = fusion.sample(frac = 1) # shuffle line
     data, target = splitInformation(fusion)
     return data, target, species
 
