@@ -206,7 +206,7 @@ def predictions(files, species, files2, species2, nbC=1000, nbC2=None, gating='l
         if average:
             predict_lbl = f.bestPred(list(predict_lbls[:, i]), doubt=doubt)  # average of 10
             if len(predict_lbl) > 0:
-                conf2.append(confusion_matrix(target[i], predict_lbl, species + ['unknown']))
+                conf2.append(confusion_matrix(target[i], predict_lbl, labels=species + ['unknown']))
                 statistics2 = f.statAnalysis(list(predict_lbl), list(target[i]), species)
                 acc2.append(statistics2.loc['MEAN', 'ACC'])
                 f12.append(statistics2.loc['MEAN', 'F1'])
