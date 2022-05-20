@@ -50,7 +50,7 @@ def predictionMultiple(files, refArrays, species, files2, Data, target2, nbC, re
                                                                         species)
     #LIME TODO REMOVE AT THE END
 
-    conf = confusion_matrix(known_lbl, predict_lbl, species)
+    conf = confusion_matrix(known_lbl, predict_lbl, labels=species)
     statistics = f.statAnalysis(predict_lbl, known_lbl, species)
     fls = []
     for file in files:
@@ -76,7 +76,7 @@ def predictionMultiple(files, refArrays, species, files2, Data, target2, nbC, re
         predict_lbl2 = f.predict(predType, scaler, classifier, Data[0], species)
         print('PREDICTION')
         statistics2.append(f.statAnalysis(predict_lbl2, target2[0], species))
-        conf2 = confusion_matrix(target2[0], predict_lbl2, species)
+        conf2 = confusion_matrix(target2[0], predict_lbl2, labels=species)
         predict_lbl2 = [predict_lbl2]
 
         if not average and save is not None and repeat == 0:
