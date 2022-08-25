@@ -26,7 +26,7 @@ Package installing:
 -	Check for pip3 or pip in the cmd, install it if not available
 On the termina, enter the folowing commands:
 	pip3 install matplotlib==3.1.1
-	pip3 install PyQt5==5.15
+	pip3 install PyQt5==5.15.2
 	pip3 install scikit-learn==0.23.2
 	pip3 install fcsparser==0.2.0
 Download or Clone the directory containing, the scripts, database file, Result directory References directory.
