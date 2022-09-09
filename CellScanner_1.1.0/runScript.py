@@ -47,10 +47,10 @@ def predictionMultiple(files, refArrays, species, files2, Data, target2, nbC, re
     data, target, species = f.treat(refArrays, species, nbC, mode='train')
     #data = data[['FSC-A', 'SSC-A', 'FL1-A', 'FL4-A']]#TODO remove after the feature importance done
     scaler, classifier, predict_lbl, known_lbl, predict_data = f.learning(predType, data, target, ratio, random_state,
-                                                                        species)
+                                                                        species,rept=repeat)
     #LIME TODO REMOVE AT THE END
 
-    conf = confusion_matrix(known_lbl, predict_lbl, labels=species)
+    conf = confusion_matrix(known_lbl, predict_lbl,labels=species)
     statistics = f.statAnalysis(predict_lbl, known_lbl, species)
     fls = []
     for file in files:
@@ -117,21 +117,23 @@ def predictions(files, species, files2, species2, nbC=1000, nbC2=None, gating='l
     # todo default channel name and dicChannels
     if param is None:
         param = ['FL3-A', 'FL1-A', 'FSC-A']
-    #cwd = 'Results/'
+    # Create result directory
     if not os.path.exists(cwd):
        os. mkdir('Results/')
        cwd = 'Results/'
-
     now = datetime.now()
     dirName = now.strftime("%Y%m%d-%H_%M_%S/")
     os.mkdir(cwd + dirName)
     cwd = cwd + dirName
+    # Create file option with all parameter given in the input
     f.fileOption(cwd, files, species, files2, species2, nbC, nbC2, gating, predAn, predtype, ratio, repeat, average,
                  doubt,channels=channels,dicChannels=dicChannels,fc=fc)
+
     if showgat and save is not None:
         showgat = save
     else:
         showgat = None
+    # Gate Data: according to method
     Data = []
     target2 = []
     refArrays = f.importFile(files, gating=gating, save=showgat, fc=fc, cwd=cwd,channels=channels,dicChannels=dicChannels)
@@ -150,11 +152,11 @@ def predictions(files, species, files2, species2, nbC=1000, nbC2=None, gating='l
         refArrays,species = f.machineGating(refArrays, species, refArrays, species,cwd=cwd,show=showgat,name='ref', predType=predtype, param=param)
         if predAn == 'analysis':
             predArrays, species2 = f.machineGating(refArrays+blankArrays, species+['blank']*len(blankArrays), predArrays, species2,cwd = cwd,show = showgat, name='pred',param=param,predType=predtype)
-            # todo check if 10 and 5000 is not too much!!
+            # todo check if 10 and 5000 is not too much!! here we add the former blank from the new gating output
         else :
             refArrays = refArrays + blankArrays
             species = species+['blank']*len(blankArrays)
-
+    # Selection of data for prediction and analysis
     if predAn == 'prediction':
         for anArray in predArrays:
             data2, atarget2, species2 = f.treat([anArray], species2, None, mode=predAn)
@@ -181,6 +183,7 @@ def predictions(files, species, files2, species2, nbC=1000, nbC2=None, gating='l
                                        random_state=random_state, save=save, cwd=cwd, average=average)
         statisticsLearn.append(stat)
         statisticsPred.append(stat2)
+        #f.save_prediction(predict_lbl,i,cwd=cwd)
         predict_lbls.append(predict_lbl)
         confusionM.append(conf)
         confusionM2.append(conf2)

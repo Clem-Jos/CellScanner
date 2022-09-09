@@ -174,7 +174,7 @@ def randomSelection(narray, nbC=1000, random_state=None):
     length = len(narray)
     if length < nbC:
         nbC = length
-        warnings.warn('The number of selected in smaller than expected ' + str(length) +
+        warnings.warn('The number of selected is smaller than expected ' + str(length) +
                       ' the training and the prediction can be impacted.')
     for i in range(nbC):
         val = rand.randint(0, len(narray.index) - 1)
@@ -192,10 +192,12 @@ def splitInformation(narray):
     return data, target
 
 
-def logisticRegression(data, target, ratio, logReg='l2', asolver='lbfgs', random_state=None):
+def logisticRegression(data, target, ratio, logReg='l2', asolver='lbfgs', random_state=None,rept=0):
     np.set_printoptions(threshold=np.inf)
     train_img, test_img, train_lbl, test_lbl = train_test_split(data, target, test_size=ratio,
                                                                 random_state=random_state)
+
+    #save_training_set(train_img,train_lbl,rept=rept)
     scaler = StandardScaler()
     scaler.fit(train_img)
     train_img = scaler.transform(train_img)
@@ -258,11 +260,33 @@ def explainer(model,testData,testLabel,features,sp=[],scaler=''):
     #f.close()
 
 
+def save_training_set(img,lbl,cwd='',rept=0):
+    train_img=img.copy()
+    train_lbl=lbl.copy()
+    filename="C:/Users/u0128864/Desktop/CellScanner_1.1.0/Results/"+cwd+'/'
+    train_img['label']=train_lbl
+    now=datetime.now()
+    date=now.strftime("%d_%m_%Y-%H_%M_%S")
+    filename=filename+'training_'+str(rept)+'_'+date+'.csv'
+    train_img.to_csv(filename,sep=';',decimal=',')
 
-def neuralNetwork(data, target, ratio, activation='relu', solver='lbfgs', max_iter=200, random_state=None):
+    return None
+
+def save_prediction(lbl,run,cwd=''):
+    pred=pd.DataFrame(lbl).T
+    filename="C:/Users/u0128864/Desktop/CellScanner_1.1.0/"+cwd+'/'
+    now = datetime.now()
+    date = now.strftime("%d_%m_%Y-%H_%M")
+    filename = filename + 'prediction_'+str(run)+'_'+date + '.csv'
+    pred.to_csv(filename, sep=';', decimal=',')
+
+
+
+def neuralNetwork(data, target, ratio, activation='relu', solver='lbfgs', max_iter=200, random_state=None,rept=0):
     np.set_printoptions(threshold=np.inf)
     train_img, test_img, train_lbl, test_lbl = train_test_split(data, target, test_size=ratio,
                                                                 random_state=random_state)
+    #save_training_set(train_img, train_lbl,rept=rept)
     test_data = test_img
     scaler = StandardScaler()
     scaler.fit(train_img)
@@ -304,10 +328,11 @@ def neuralNetwork(data, target, ratio, activation='relu', solver='lbfgs', max_it
     return predict_lbl, known_lbl, scaler, grid, test_data
 
 
-def randomForest(data, target, ratio, n_estimators=200, criterion='gini', random_state=None):
+def randomForest(data, target, ratio, n_estimators=200, criterion='gini', random_state=None,rept=0):
     np.set_printoptions(threshold=np.inf)
     train_img, test_img, train_lbl, test_lbl = train_test_split(data, target, test_size=ratio,
                                                                 random_state=random_state)
+    #save_training_set(train_img, train_lbl,rept=rept)
     test_data = test_img
     scaler = StandardScaler()
 
@@ -335,7 +360,7 @@ def randomForest(data, target, ratio, n_estimators=200, criterion='gini', random
     return predict_lbl, known_lbl, scaler, grid, test_data
 
 
-def randomGuessing(data, species, ptype='train', target=None, ratio=1 / 7, random_state=None):
+def randomGuessing(data, species, ptype='train', target=None, ratio=1 / 7, random_state=None,rept=0):
     if target is None:
         target = []
     if ptype == 'train':
@@ -347,6 +372,7 @@ def randomGuessing(data, species, ptype='train', target=None, ratio=1 / 7, rando
         lgth = len(data)
         test_data = data
         test_lbl = []
+    #save_training_set(train_img, train_lbl,rept=rept)
     predict = []
     spNb = len(species)
     for i in range(lgth):
@@ -425,7 +451,11 @@ def statAnalysis(predicted, known, species):  # TO OPTIMIZE I can directly extra
         res.loc[s, 'ACC'] = acc
         res.loc[s, 'F1'] = f1
         res.loc[s,'cACC']= (tp+tn)/(p+n-ukn)
-        res.loc[s, 'cF1'] =(2*tp)/(2*tp+fp+fn-ukn)
+        print(tp,fp,fn,ukn)
+        if (2*tp+fp+fn-ukn)==0:
+            res.loc[s, 'cF1'] =0
+        else:
+            res.loc[s, 'cF1'] =(2*tp)/(2*tp+fp+fn-ukn)
     sum = res.sum(axis=0)
     res.loc['MEAN'] = res.mean(axis=0)
     #res.loc['MEAN','TPR']= sum([res.iloc[i]['TPR'] for i in range(len(species))])/len(species)
@@ -434,7 +464,11 @@ def statAnalysis(predicted, known, species):  # TO OPTIMIZE I can directly extra
 
     res.loc['MEAN', 'ACC'] = accuracy_score(known, predicted)
     res.loc['MEAN', 'F1'] = f1_score(known, predicted, average='weighted')
-    res.loc['MEAN', 'cACC'] =sum['TP']/(sum['P']-sum['UNKNOWN'])
+    print(res)
+    if sum['P']-sum['UNKNOWN']>0:
+        res.loc['MEAN', 'cACC'] =sum['TP']/(sum['P']-sum['UNKNOWN'])
+    else:
+        res.loc['MEAN', 'cACC'] = 'unavailable'
     #res.loc['MEAN', 'cF1'] =
     res
     return res
@@ -647,7 +681,7 @@ def graph3d(data, predict, target, species, param=[], statistics=None, show='sho
                     zp.append(np.log10(data.iloc[i, posParam[2]]))
         ax1.scatter(xk, yk, zk, label=sp, s=0.5)
         ax2.scatter(xp, yp, zp, label=sp, s=0.5)
-    ax1.set_title('Expected Result')
+    ax1.set_title('Expected result')
     ax2.set_title('Predicted result')
     ax1.set_xlabel(param[0])
     ax1.set_ylabel(param[1])
@@ -909,8 +943,10 @@ def fileOption(cwd, files, species, files2, species2, nbC, nbC2, gating='line', 
         predictionT = 'Logistic regression'
     elif predtype == 'rand':
         predictionT = 'Random forest'
-    else:
+    elif predtype == 'rdguess':
         predictionT = 'Random guess'
+    else:
+        predictionT = 'Agglomerative clustering'
     f.write('\nTraining:\nNumber of cell per records: ' + str(nbC) + '\nRatio Test/Training: ' + str(ratio) + '\n')
     if predtype == 'analysis':
         f.write(
@@ -1161,7 +1197,7 @@ def machineGating(refArrays, species, predArrays, species2, predType='neur', rat
                 data, target, species = treat(blank.copy() + [aSpArray], ['blank'] * len(blank) + [aSp], 1000,
                                               mode='train')
                 scaler, classifier, predict_lbl, known_lbl, predict_data = learning(predType, data, target, ratio,
-                                                                                    random_state, species)
+                                                                                    random_state, species,rept=i)
 
                 predict_lbl2 = predict(predType, scaler, classifier, data2, species)
                 predictions.append(predict_lbl2)
@@ -1199,6 +1235,8 @@ def importFile(files, gating='None', save='None', fc='Accuri', cwd='', channels=
             data = []
         if 'Time' in list(data.columns):
             data = data.drop(['Time'], axis=1)
+        if 'Object Number' in list(data.columns):
+            data = data.drop(['Object Number'], axis=1)
         if dicChannels!= {'':'','':'','':''} and dicChannels!={}:
             data = data.rename(columns=dicChannels)
         for a in channels:
@@ -1238,9 +1276,9 @@ def treat(someArrays, species, nbC, mode='pred', cluster=False, random_state=Non
     if mode == 'train' or mode == 'analysis':
         arrays, species = mergeSameSpecies(arrays, species)
     for i in range(len(arrays)):
-        if nbC is not None:
+        if nbC is not None and not cluster:
             arrays[i] = randomSelection(arrays[i], nbC, random_state=random_state)
-        if cluster:
+        elif cluster:
             arrays[i] = arrays[i].dropna()
             #arrays[i] = arrays[i].drop(columns=['FL4-A', 'FL4-H'])
             arrays[i] = arrays[i].dropna()
@@ -1249,18 +1287,18 @@ def treat(someArrays, species, nbC, mode='pred', cluster=False, random_state=Non
                     arrays[i].iloc[j, k] = np.log10(arrays[i].iloc[j, k])
             arrays[i] = arrays[i].replace([np.inf, -np.inf], np.nan)
             arrays[i] = arrays[i].dropna()
+            arrays[i] = randomSelection(arrays[i], nbC, random_state=random_state)
         arrays[i] = addSpeciesTag(arrays[i], species[i])  # TODO check if array len =1 works in this case
 
         if len(arrays) > 1:
             fusion = pd.concat(arrays, ignore_index=True, sort=False)
         else:
             fusion = arrays[0]
-    fusion = fusion.sample(frac = 1) # shuffle line
     data, target = splitInformation(fusion)
     return data, target, species
 
 
-def learning(predType, data, target, ratio, random_state, species=None):
+def learning(predType, data, target, ratio, random_state, species=None,rept=0):
     """
     This function create the machine learning model from references datasets. The ratio indicate the ratio of dataset
     for Learning/Training set.
@@ -1277,15 +1315,15 @@ def learning(predType, data, target, ratio, random_state, species=None):
         species = []
     if predType == 'log':
         predict_lbl, known_lbl, scaler, classifier, predict_data = logisticRegression(data, target, ratio,
-                                                                                      random_state=random_state)
+                                                                                      random_state=random_state,rept=rept)
     elif predType == 'neur':
         predict_lbl, known_lbl, scaler, classifier, predict_data = neuralNetwork(data, target, ratio,
-                                                                                 random_state=random_state)
+                                                                                 random_state=random_state,rept=rept)
     elif predType == 'rand':
         predict_lbl, known_lbl, scaler, classifier, predict_data = randomForest(data, target, ratio,
-                                                                                random_state=random_state)
+                                                                                random_state=random_state,rept=rept)
     else:  # predType == 'rdguess':
-        predict_lbl, known_lbl, predict_data = randomGuessing(data, species, 'train', target, ratio, random_state)
+        predict_lbl, known_lbl, predict_data = randomGuessing(data, species, 'train', target, ratio, random_state,rept=rept)
         scaler = ''
         classifier = ''
     return scaler, classifier, predict_lbl, known_lbl, predict_data

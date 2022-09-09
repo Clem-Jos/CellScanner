@@ -193,8 +193,10 @@ def addChannels(fc,channels,ref, update):
             #get the id from the ref name
             # crete the phrase
             phrase = "INSERT INTO CHANNELS (NAME,ID_FC,ID_REF_CN) VALUES ('"+channels[i]+"',"+str(fcid)+",(SELECT ID FROM REF_CHANNELS WHERE NAME='"+str(ref[i])+"'))"
+            print(phrase)
         else:
             phrase = "INSERT INTO CHANNELS (NAME,ID_FC) VALUES ('" + channels[i] + "'," + str(fcid) + ")"
+            print(phrase)
             #create the phrase
         res = execute(phrase)
 

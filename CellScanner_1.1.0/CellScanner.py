@@ -124,11 +124,11 @@ class MainWindow(QMainWindow):
         self.cams.show()
 
     def clickH(self):
-        if path.exists('Help.pdf'):
-            webbrowser.open(r'file://'+getcwd()+'/Help.pdf')
+        if path.exists('CellScanner_user_manual.pdf'):
+            webbrowser.open(r'file://'+getcwd()+'/CellScanner_user_manual.pdf')
         else:
             try:
-                webbrowser.open("http://msysbiology.com/documents/CellScanner/user_manual.pdf")
+                webbrowser.open("http://msysbiology.com/documents/CellScanner/CellScanner_user_manual.pdf")
             except:
                 msg = QMessageBox.warning(self, 'Error', 'Impossible to find the help file, please check your internet connection.')
 
@@ -1104,6 +1104,7 @@ class UpdateFc(QWidget):
         self.aClassQ = QComboBox()
 
         for i in range(len(self.ref_channels)):
+            #print(self.ref_channels[i])
             self.labels.append(QLabel(self.ref_channels[i]))
             self.descLabel.append(QLabel(self.ref_desc[i]))
             self.comboBox.append(QComboBox(self))

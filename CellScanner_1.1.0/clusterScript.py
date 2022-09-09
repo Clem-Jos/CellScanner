@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import silhouette_score
 import machineLearningPackage as f
-
+from sklearn.metrics import confusion_matrix
 
 # ####IMPORT AND TREAT DATA :
 def assignCluster(dist, sp):
@@ -100,6 +100,23 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
         return 'None'
     Data = []
     targetPred = []
+    blankArrays = []
+    blk = ['BLANK', 'Blank', 'blank']
+    for i in range(len(species)):
+        if species[i] in blk:
+            blankArrays.append(refArrays[i])
+    if gating == 'machine':
+        refArrays, species = f.machineGating(refArrays, species, refArrays, species, cwd=cwd, show=showgat, name='ref',
+                                             predType='neur', param=param)
+        if predAn == 'analysis':
+            predArrays, species2 = f.machineGating(refArrays + blankArrays, species + ['blank'] * len(blankArrays),
+                                                   predArrays, sppred, cwd=cwd, show=showgat, name='pred',
+                                                   param=param, predType='neur')
+            # todo check if 10 and 5000 is not too much!! here we add the former blank from the new gating output
+        else:
+            refArrays = refArrays + blankArrays
+            species = species + ['blank'] * len(blankArrays)
+
     if predAn == 'prediction':
         for anArray in predArrays:
             data2, atarget2, species2 = f.treat([anArray], sppred, None, mode='clustering', cluster=True)
@@ -110,6 +127,7 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
         Data.append(data2)
         targetPred.append(target2)
     dataRef, targetRef, species = f.treat(refArrays, species, nbC, mode='analysis', cluster=True)
+    print(dataRef)
 
     # ##################CALCULATION############################################
     nmax = len(species)
@@ -153,7 +171,7 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
                     predLabel.append(label[i])
             allsp = species + [i for i, x in enumerate(clusterSP) if x == 0]
             if predAn == 'analysis':
-                conf = f.r.confusion_matrix(targetPred[k], predLabel, allsp)
+                conf = confusion_matrix(targetPred[k], predLabel, labels=allsp)
                 #pA = f.pd.DataFrame({'exp': targetPred[k], 'pred': predLabel})
                 #pA.to_csv(cwd + 'results.csv', sep=';', mode='a')
                 f.cmFile(conf, allsp, cwd, 'Prediction CM')
@@ -186,7 +204,7 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
             predLabel = []
             n = nmax
             label =[]
-            while n > 0:
+            while n > 0:# limit a deux clusters
                 # ##PREDICTION##
                 clusters = AgglomerativeClustering(n_clusters=n).fit(Data[k])
                 predictL = clusters.labels_
@@ -214,7 +232,7 @@ def clustering(refFiles, species, predFiles, sppred, predAn, param, nbC=1000, nb
             # #### ASSESSMENT PART, GRAPH AND ACCURACY ####
             allsp = species + list(range(0, clust_nb))
             if predAn == 'analysis':
-                conf = f.r.confusion_matrix(targetPred[k], predLabel, allsp)
+                conf = confusion_matrix(targetPred[k], predLabel, labels=allsp)
                 pA = f.pd.DataFrame({'exp': targetPred[k], 'pred': predLabel})
                 pA.to_csv(cwd + 'results.csv', sep=';', mode='a')
                 # newSp = list(set(species)) TODO why same question

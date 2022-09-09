@@ -124,6 +124,7 @@ def getChannelsFromFile(filename):
        data = read_csv(filename, header=0, sep=',', nrows=2)
     elif filename[-3:] == 'fcs':
         meta, data = parse(filename, reformat_meta=True)
+    #print(list(data.columns))
     return (list(data.columns))
 
 
